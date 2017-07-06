@@ -1,0 +1,55 @@
+# Rules are ordered after how specific they are
+# An earlier rule, gets checked first and might deny the match of a later one, which would detect a subgroup
+# http://regexr.com and https://regex101.com help a lot in crating and understanding the rules
+# Rules can be named by "Name" and then two semicolons. For example BR;; names the Basic Rule
+# Rules can be referenced by their name. To insert a rule in another rule use ;@"Name of rule"@;
+#Percentage Ranges
+PR;;((([^\s]*(?:\/(?:IN|RB|POS)))\s)?(([^\s]*\/CD\s)%\/NN\s)to\/TO\s(([^\s]*\/CD\s)%\/NN\s))
+#Enumerations of Nouns or Numbers
+ENR;;((('s|')(?:\/POS)\s)?([^\s]*(?:\/DT)\s)?[^\s]*\/(?:NNP|NN|CD)\s,\/,\s[^\s]*\/(?:NNP|NN|CD)\s[^\s]*\/CC\s[^\s]*\/(?:NNP|NN|CD))
+#Dates
+DATS;;([^\s]*\/NNP\s[^\s]*\/CD\s,\/,\s[^\s]*\/CD)
+#Monetary Ranges
+MR;;((only\/RB\s)?;@MV@;to\/TO\s;@MV@;)
+#Nouns which are connected by an "and": SAR + CC + SAR
+#ACNR;;((;@PRP@;|;@DT@;|;@AR@;)([^\s]*(?:\/CC)\s);@SAR@;)
+#Gets monetary values
+MV;;((([^\s]*(?:\/DT))\s([^\s]*(?:\/(?:JJ|JJS|JJR))\s)?|about\/IN\s|about\/RB\s|just\/RB\s|nearly\/RB\s|over\/IN\s|more\/JJR\sthan\/IN\s|less\/JJR\sthan\/IN\s|up\/IN\sto\/TO\s|up\/RB\sto\/TO\s)?([^\s]+(?:\/(?:\$|#|€))\s)([^\s]*(?:\/(?:JJ|JJS|JJR))\s)?;@CD@;*([^\s]*\/NN\s){0,2})
+#gets ranges of numbers
+RR;;((;@MV@;|(;@CD@;[^\s]+\/NN\s))to\/TO\s(;@MV@;|(;@CD@;[^\s]+\/NN\s)))
+#Some noun phrases have a VBG in them
+#VBGR;;(((([^\s]*(?:\/DT))\s)|([^\s]*(?:\/CD))\s)([^\s]+\/VBG)\s;@CDAR@;)
+#determiner (a, the, this...) before adjective rule. May include verb participle
+#DT;;([^\s]*(?:\/DT)\s([^\s]*(?:\/VBN)\s)?;@CDAR@;)
+#Adjectives combined by an "and" in front of basic rule
+#ACAR;;([^\s]*(?:(?:DT|POS))\s([^\s]*(?:\/JJ)\s)([^\s]*(?:\/CC)\s)([^\s]*(?:\/JJ)\s);@SAR@;)
+#POS tag before basic rule: POS +  optional ver participle + adjective rule
+#POS;;(('s|')(?:\/POS)\s([^\s]*(?:\/VBN)\s)?;@CD@;?;@CDAR@;)
+#Personal Pronoun in front of  adjectives rule
+#PRP;;([^\s]*(?:\/PRP|PRP\$)\s;@CDAR@;?)
+#Personal Pronoun in front of basic rule
+#PRPB;;([^\s]*(?:\/PRP|PRP\$)\s;@BR@;?)
+#Noun before adjective rule. Sometimes there are nouns in longer baseNPs before a adjective phrase  NN + AR
+#AAR;;([^\s]*(?:\/(?:NNS|NNPS|NNP|NN))\s;@CDAR@;)
+#Numbers before adjective phrases: CD + AR
+#CDAR;;(;@CD@;?;@AR@;)
+#adverb rule. One Adverb might be in front of adjective rule
+#RBR;;(([^\s]*(?:\/DT)\s)?([^\s]*(?:\/RB|RBR|RBS)\s);@CDAR@;)
+#adjective before basic rule  (JJ|JJS|JJR)* + BR
+#AR;;(([^\s]*\/RBS\s)?([^\s]*(?<!due)(?:\/(?:JJ|JJS|JJR)\s,\/,\s))?([^\s]*(?<!due)(?:\/(?:JJ|JJS|JJR))\s)*;@BR@;)
+#zero or 1 adjective before basic rule  (JJ|JJS|JJR)? + BR
+#SAR;;(([^\s]*(?<!due)(?:\/(?:JJ|JJS|JJR))\s)?;@BR@;)
+#Basic Rule
+BR;;(;@CD@;*([^\s]*(?:\/(?:NNS|NNPS|NNP|NN))\s)+;@CD@;*)
+#Gets Wh-pronouns. One token is us usually the whole baseNP
+#WH;;([^\s]*)(?:\/WP)
+#Gets Cardinal Digits. This includes possible augmentations
+CD;;(((([a|A]bout\/IN|more\/JJR\sthan\/IN|less\/JJR\sthan\/IN|up\/IN\sto\/TO|up\/RB\sto\/TO|another\/DT)\s)?([^\s]+\/CD\s))+)
+#"That" with the POS Tag WDT is considered a NP
+#WDT;;(([T|t]hat|[W|w]hich)\/WDT)
+#"There" with the POS Tag EX is considered a NP
+#EX;;(([T|t]here)\/EX)
+#"This" with the POS Tag DT is considered a NP
+#ThisDT;;(([T|t]his|[T|t]hese|[E|e]ach|[A|a]ll)\/DT)
+#"That" with the POS Tag DT is considered a NP
+#ThatDT;;(([T|t]hat)\/DT)

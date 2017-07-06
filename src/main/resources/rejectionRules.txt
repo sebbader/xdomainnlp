@@ -1,0 +1,27 @@
+# use ;@phrase@; to insert baseNP at that position
+# use ;@phrasepartone@; to insert phrase up to the connecting word
+# use ;@phraseparttwo@; to insert phrase starting from the word after the connecting word
+# use ∞ to specify a new delimiter (connecting word). Every line after that until the next delimiter will only be checked on phrases containing the delimiter.
+# Use ;discard; ;keepright; ;keepleft; to specify where to put the delimiter after splitting the phrase
+∞ and/CC ∞;discard;
+# front tokens
+,/, ;@phrase@;
+from/IN ;@phrase@;
+between/IN ;@phrase@;
+# back token
+;@phrase@;is/VBZ
+;@phrase@;for/IN
+;@phrase@;of/IN
+# combinations
+[^\s]*(?:\/IN) ;@phrase@;[^\s]*(?:\/IN)
+for/IN ;@phrase@;./.
+named/VBN ;@phrase@;of/IN
+,/, ;@phrase@;./.
+,/; ;@phrase@;[^\s]*(?:\/IN)
+# In phrase
+;@phrasepartone@; and/CC [^\s]*(?:\/DT)
+Mr.\/NNP [^\s]*(?:\/NNP) and\/CC ;@phraseparttwo@;
+∞ Mr./NNP ∞;keepright;
+(?<!('s/POS|old/JJ)\s)Mr./NNP
+∞ yesterday/NN∞;keepright;
+;@phrase@;
