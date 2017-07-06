@@ -94,5 +94,4 @@ http://localhost:9080/nlp/{domain}/{requestedAnnotator}/{id}
 * RBBNPE
 * MALLET
 
-* Based on stanfordNLPRESTAPI# xdomainnlp
-# xdomainnlp
+* Based on stanfordNLPRESTAPI
