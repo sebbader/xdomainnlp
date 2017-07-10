@@ -34,7 +34,9 @@ For the novelty detection, the corpus should be one single text file (.txt) wher
 
 ### ND
 
-1) Analogous to the NER, copy the corpus to resources/novelty-data/<domain-name> and execute a POST query to localhost:9080/nlp/{domain-name}/ontology-index in order to add a new domain.
+1) Analogous to the NER, copy the corpus to resources/novelty-data/<domain-name> and execute a POST query to localhost:9080/nlp/{domain-name}/ontology-index for the creation of an inverted index. It serves as the novelty computation reference.
+
+2) Train the corresponding LDA model with the provided TopicModeler class. Use the model in order to serialize the necessary pipes and inferencer. Refer to the MALLET documentation for further information. Copy the pipes and inferencer to ressources/<domain-name>/mallet-models.
 
 ## Execution
 
