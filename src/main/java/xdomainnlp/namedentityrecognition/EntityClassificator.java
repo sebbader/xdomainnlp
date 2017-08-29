@@ -58,7 +58,7 @@ public class EntityClassificator {
 						if (entity.getCorefSynonyms().size() > numTriedCorefs) {
 							candidateStmts = tripleSearcher.search(null, RDFS.LABEL.stringValue(), entity.getCorefSynonyms().get(numTriedCorefs), 10,
 									0.9);
-							numTriedCorefs += 1;
+							numTriedCorefs += 1; 
 							continue;
 						}
 						break;
