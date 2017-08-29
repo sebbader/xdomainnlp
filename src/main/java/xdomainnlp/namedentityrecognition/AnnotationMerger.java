@@ -64,6 +64,10 @@ public class AnnotationMerger {
 					int mentionEndOffset = mentions.get(j).get(CharacterOffsetEndAnnotation.class);
 					int entityBeginOffset = entity.getNounPhrase().getStartOffset();
 					int entityEndOffset = entityBeginOffset + entity.getNounPhrase().getPhraseString().length();
+					
+					
+					// find entity type by relying on Stanford Core Annotations ONLY!!!
+					// TODO enhancing for classes and superclasses in custom ontology
 					String namedEntityType = mentions.get(j).get(NamedEntityTagAnnotation.class);
 
 					if ((mentionBeginOffset < entityBeginOffset && mentionEndOffset > entityEndOffset) && !namedEntityType.equals("O")) {

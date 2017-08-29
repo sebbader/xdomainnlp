@@ -49,6 +49,7 @@ public class EntityClassificator {
 
 				int numTriedCorefs = 0;
 				while (true) {
+					// TODO using classes from ontology through lookups in 'ontology-index'
 					if (candidateStmts.isEmpty()) {
 
 						/*
