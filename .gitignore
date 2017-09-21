@@ -48,3 +48,4 @@ dependency-reduced-pom.xml
 **/novelty-data/
 **/novelty-index/
 **/ontology-index/
+/bin/

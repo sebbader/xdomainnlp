@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.semarglproject.vocab.RDF;
 
 import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetBeginAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetEndAnnotation;
@@ -68,7 +69,6 @@ public class EntityClassificator {
 						break;
 					} else if (candidateStmts.size() == 1) {
 						ArrayList<Statement> subClassOf = tripleSearcher.search(candidateStmts.get(0).getSubject().stringValue(), RDFS.SUBCLASSOF.stringValue(), null, 100, 0.9);
-//						ArrayList<Statement> rdfLabel = tripleSearcher.search(candidateStmts.get(0).getSubject().stringValue(), RDFS.LABEL.stringValue(), null, 100, 0.9);
 						for(Statement upperClass : subClassOf) {
 //							keine Blank node oder owl:Thing als Überklasse
 							if((upperClass.getObject().stringValue().startsWith("http"))&&(!upperClass.getObject().stringValue().contains("owl#Thing"))) {
@@ -76,6 +76,17 @@ public class EntityClassificator {
 							}
 							if(entity.getType() != null) {
 								break;
+							}
+						}
+						if(subClassOf.isEmpty()) {
+							ArrayList<Statement> rdftype= tripleSearcher.search(candidateStmts.get(0).getSubject().stringValue(), RDF.TYPE, null, 100, 0.9);
+							for(Statement type : rdftype) {
+								if((!type.getObject().stringValue().contains("owl#Thing"))||(!type.getObject().stringValue().contains("owl#NamedIndividual"))) {
+									entity.setType(type.getObject().stringValue());					
+								}
+								if(entity.getType() != null) {
+									break;
+								}
 							}
 						}
 						
@@ -90,13 +101,25 @@ public class EntityClassificator {
 						// Choose the candidate with the smallest Levensthein Distance to the entity
 						Statement candidate = disambiguateEntity(entity, candidateStmts, disambiguationProperty);
 						
-						ArrayList<Statement> partOf = tripleSearcher.search(candidate.getSubject().stringValue(), "http://www.w3.org/2001/sw/BestPractices/OEP/SimplePartWhole/part.owl#partOf", null, 100, 0.9);
-						for(Statement part : partOf) {
-							if((!part.getObject().stringValue().contains("owl#Thing"))) {
-								entity.setType(part.getObject().stringValue());					
+						ArrayList<Statement> subClassOf = tripleSearcher.search(candidate.getSubject().stringValue(), RDFS.SUBCLASSOF.stringValue(), null, 100, 0.9);
+						for(Statement upperClass : subClassOf) {
+//							keine Blank node oder owl:Thing als Überklasse
+							if((upperClass.getObject().stringValue().startsWith("http"))&&(!upperClass.getObject().stringValue().contains("owl#Thing"))) {
+								entity.setType(upperClass.getObject().stringValue());						
 							}
 							if(entity.getType() != null) {
 								break;
+							}
+						}
+						if(subClassOf.isEmpty()) {
+							ArrayList<Statement> rdftype= tripleSearcher.search(candidate.getSubject().stringValue(), RDF.TYPE, null, 100, 0.9);
+							for(Statement type : rdftype) {
+								if((!type.getObject().stringValue().contains("owl#Thing"))||(!type.getObject().stringValue().contains("owl#NamedIndividual"))) {
+									entity.setType(type.getObject().stringValue());					
+								}
+								if(entity.getType() != null) {
+									break;
+								}
 							}
 						}
 						break;

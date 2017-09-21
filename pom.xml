@@ -203,32 +203,32 @@
 		<dependency>
 			<groupId>edu.kit.aifb.linkeddatafu</groupId>
 			<artifactId>linked-data-fu-common</artifactId>
-			<version>0.9.9</version>
+			<version>0.9.10</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.kit.aifb.linkeddatafu</groupId>
 			<artifactId>linked-data-fu-datasets</artifactId>
-			<version>0.9.9</version>
+			<version>0.9.10</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.kit.aifb.linkeddatafu</groupId>
 			<artifactId>linked-data-fu-engine</artifactId>
-			<version>0.9.9</version>
+			<version>0.9.10</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.kit.aifb.linkeddatafu</groupId>
 			<artifactId>linked-data-fu-evaluators</artifactId>
-			<version>0.9.9</version>
+			<version>0.9.10</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.kit.aifb.linkeddatafu</groupId>
 			<artifactId>linked-data-fu-io</artifactId>
-			<version>0.9.9</version>
+			<version>0.9.10</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.kit.aifb.linkeddatafu</groupId>
 			<artifactId>linked-data-fu-operators</artifactId>
-			<version>0.9.9</version>
+			<version>0.9.10</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.sharispe</groupId>
