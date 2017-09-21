@@ -139,17 +139,11 @@ public class EntityClassificator {
 	}
 
 	private Statement disambiguateEntity(Entity entity, ArrayList<Statement> candidateStmts, String disambiguationProperty) throws IOException {
-		int minLength = 0;
-		int i = 1;
+		int minLength = Integer.MAX_VALUE;
 		Statement newCandidateStmt = null;
 		for (Statement candidateStmt : candidateStmts) {
 			int levenLength = levenshteinDistance(entity.getNounPhrase().getPhraseString().toLowerCase(), candidateStmt.getObject().stringValue().toLowerCase());
-			
-			if (i == 1) {
-				i++;
-				minLength = levenLength;
-				newCandidateStmt = candidateStmt;
-			}
+
 			if(minLength > levenLength) {
 				minLength = levenLength;
 				newCandidateStmt = candidateStmt;
