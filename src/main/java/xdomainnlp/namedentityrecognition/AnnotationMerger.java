@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.openrdf.model.Statement;
 
 import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetBeginAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetEndAnnotation;
@@ -31,6 +32,7 @@ public class AnnotationMerger {
 	private String domain;
 	private String inputText;
 	private Annotation coreNlpDoc;
+	public List<String[]> recognizedEntities = new ArrayList<String[]>();
 
 	public AnnotationMerger(String domain, String inputText, Annotation coreNlpDoc) throws IOException {
 		this.domain = domain;
@@ -48,6 +50,14 @@ public class AnnotationMerger {
 		ec.classifyEntities("http://purl.obolibrary.org/obo/IAO_0000115");
 
 		addCoreNlpTypes(entities);
+
+		for (Entity entity : entities) {
+			if (entity.isNamedEntity()) {
+				recognizedEntities.add(new String[] { String.valueOf(entity.getNounPhrase().getStartOffset()),
+						entity.getLabelStmt().getSubject().stringValue(), entity.getType() });
+			}
+		}
+
 	}
 
 	public void addCoreNlpTypes(ArrayList<Entity> entities) {
@@ -64,13 +74,13 @@ public class AnnotationMerger {
 					int mentionEndOffset = mentions.get(j).get(CharacterOffsetEndAnnotation.class);
 					int entityBeginOffset = entity.getNounPhrase().getStartOffset();
 					int entityEndOffset = entityBeginOffset + entity.getNounPhrase().getPhraseString().length();
-					
-					
+
 					// find entity type by relying on Stanford Core Annotations ONLY!!!
 					// TODO enhancing for classes and superclasses in custom ontology
 					String namedEntityType = mentions.get(j).get(NamedEntityTagAnnotation.class);
 
-					if ((mentionBeginOffset < entityBeginOffset && mentionEndOffset > entityEndOffset) && !namedEntityType.equals("O")) {
+					if ((mentionBeginOffset < entityBeginOffset && mentionEndOffset > entityEndOffset)
+							&& !namedEntityType.equals("O")) {
 						entity.setType(namedEntityTypesProps.getProperty(namedEntityType));
 					}
 				}
@@ -82,14 +92,16 @@ public class AnnotationMerger {
 				String namedEntityType = tokens.get(k).get(NamedEntityTagAnnotation.class);
 
 				if (!namedEntityType.equals("O")) {
-					tokens.get(k).set(NamedEntityTagAnnotation.class, namedEntityTypesProps.getProperty(namedEntityType));
+					tokens.get(k).set(NamedEntityTagAnnotation.class,
+							namedEntityTypesProps.getProperty(namedEntityType));
 				}
 
 				for (Entity entity : entities) {
 					int entityBeginOffset = entity.getNounPhrase().getStartOffset();
 					int entityEndOffset = entityBeginOffset + entity.getNounPhrase().getPhraseString().length();
 
-					if ((tokenBeginOffset == entityBeginOffset) || (tokenBeginOffset > entityBeginOffset && tokenEndOffset <= entityEndOffset)) {
+					if ((tokenBeginOffset == entityBeginOffset)
+							|| (tokenBeginOffset > entityBeginOffset && tokenEndOffset <= entityEndOffset)) {
 						if (entity.getType() != null) {
 							tokens.get(k).set(NamedEntityTagAnnotation.class, entity.getType());
 						} else if (entity.getType() == null && entity.isNamedEntity() && namedEntityType.equals("O")) {
@@ -111,7 +123,8 @@ public class AnnotationMerger {
 				tokenBegin = 0;
 			}
 
-			List<CoreMap> chunks = chunkIdentifier.getAnnotatedChunks(tokens, tokenBegin, TextAnnotation.class, NamedEntityTagAnnotation.class);
+			List<CoreMap> chunks = chunkIdentifier.getAnnotatedChunks(tokens, tokenBegin, TextAnnotation.class,
+					NamedEntityTagAnnotation.class);
 			sentence.set(CoreAnnotations.MentionsAnnotation.class, chunks);
 		}
 	}
@@ -127,7 +140,8 @@ public class AnnotationMerger {
 				String namedEntityType = tokens.get(j).get(NamedEntityTagAnnotation.class);
 
 				if (!namedEntityType.equals("O")) {
-					tokens.get(j).set(NamedEntityTagAnnotation.class, namedEntityTypesProps.getProperty(namedEntityType));
+					tokens.get(j).set(NamedEntityTagAnnotation.class,
+							namedEntityTypesProps.getProperty(namedEntityType));
 				}
 			}
 		}
@@ -142,7 +156,8 @@ public class AnnotationMerger {
 				tokenBegin = 0;
 			}
 
-			List<CoreMap> chunks = chunkIdentifier.getAnnotatedChunks(tokens, tokenBegin, TextAnnotation.class, NamedEntityTagAnnotation.class);
+			List<CoreMap> chunks = chunkIdentifier.getAnnotatedChunks(tokens, tokenBegin, TextAnnotation.class,
+					NamedEntityTagAnnotation.class);
 			sentence.set(CoreAnnotations.MentionsAnnotation.class, chunks);
 		}
 	}
@@ -150,7 +165,8 @@ public class AnnotationMerger {
 	private Properties loadProperties(String propertiesFileName) {
 		Properties prop = new Properties();
 
-		try (InputStream is = getClass().getClassLoader().getResourceAsStream("ontology/" + domain + "/" + propertiesFileName + ".properties")) {
+		try (InputStream is = getClass().getClassLoader()
+				.getResourceAsStream("ontology/" + domain + "/" + propertiesFileName + ".properties")) {
 			prop.load(is);
 		} catch (IOException e) {
 			e.printStackTrace();

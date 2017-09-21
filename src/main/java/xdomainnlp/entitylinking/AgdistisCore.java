@@ -18,7 +18,8 @@ import edu.stanford.nlp.util.CoreMap;
 public class AgdistisCore {
 	private final Annotation coreNlpDoc;
 	private final String inputDocText;
-	private HashMap<Integer, String> disambiguatedUris;
+	public HashMap<Integer, String> disambiguatedUris;
+	
 
 	public AgdistisCore(Annotation coreNlpDoc, String inputDocText) {
 		this.coreNlpDoc = coreNlpDoc;
@@ -36,6 +37,8 @@ public class AgdistisCore {
 				namedEntityInTextList.add(new NamedEntityInText(entityMention.get(CharacterOffsetBeginAnnotation.class),
 						entityMention.get(TextAnnotation.class).length(), entityMention.get(TextAnnotation.class)));
 			}
+		}
+		for (NamedEntityInText entity : namedEntityInTextList) {
 		}
 
 		NamedEntitiesInText namedEntitiesInText = new NamedEntitiesInText(namedEntityInTextList);

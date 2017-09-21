@@ -45,79 +45,92 @@ public class EntityClassificator {
 	public void classifyEntities(String disambiguationProperty) throws IOException {
 		for (Entity entity : entities) {
 			if (entity.isNamedEntity()) {
-				ArrayList<Statement> candidateStmts = tripleSearcher.search(null, RDFS.LABEL.stringValue(), entity.getNounPhrase().getPhraseString(),
-						10, 0.95);
+				ArrayList<Statement> candidateStmts = tripleSearcher.search(null, RDFS.LABEL.stringValue(),
+						entity.getNounPhrase().getPhraseString(), 10, 0.95);
 				HashSet<Statement> hashSet = new HashSet<Statement>(candidateStmts);
 				candidateStmts.clear();
 				candidateStmts.addAll(hashSet);
 
 				int numTriedCorefs = 0;
 				while (true) {
-					
-					// TODO using classes from ontology through lookups in 'ontology-index'		
+
+					// TODO using classes from ontology through lookups in 'ontology-index'
 					if (candidateStmts.isEmpty()) {
 
 						/*
 						 * Try again with synonyms from coreference resolution
 						 */
 						if (entity.getCorefSynonyms().size() > numTriedCorefs) {
-							candidateStmts = tripleSearcher.search(null, RDFS.LABEL.stringValue(), entity.getCorefSynonyms().get(numTriedCorefs), 10,
-									0.9);
-							numTriedCorefs += 1; 
+							candidateStmts = tripleSearcher.search(null, RDFS.LABEL.stringValue(),
+									entity.getCorefSynonyms().get(numTriedCorefs), 10, 0.9);
+							numTriedCorefs += 1;
 							continue;
 						}
 						break;
 					} else if (candidateStmts.size() == 1) {
-						ArrayList<Statement> subClassOf = tripleSearcher.search(candidateStmts.get(0).getSubject().stringValue(), RDFS.SUBCLASSOF.stringValue(), null, 100, 0.9);
-						for(Statement upperClass : subClassOf) {
-//							keine Blank node oder owl:Thing als Überklasse
-							if((upperClass.getObject().stringValue().startsWith("http"))&&(!upperClass.getObject().stringValue().contains("owl#Thing"))) {
-								entity.setType(upperClass.getObject().stringValue());						
+						ArrayList<Statement> subClassOf = tripleSearcher.search(
+								candidateStmts.get(0).getSubject().stringValue(), RDFS.SUBCLASSOF.stringValue(), null,
+								100, 0.9);
+						for (Statement upperClass : subClassOf) {
+							// keine Blank node oder owl:Thing als Überklasse
+							if ((upperClass.getObject().stringValue().startsWith("http"))
+									&& (!upperClass.getObject().stringValue().contains("owl#Thing"))) {
+								entity.setType(upperClass.getObject().stringValue());
+								entity.setLabelStmt(candidateStmts.get(0));
 							}
-							if(entity.getType() != null) {
+							if (entity.getType() != null) {
 								break;
 							}
 						}
-						if(subClassOf.isEmpty()) {
-							ArrayList<Statement> rdftype= tripleSearcher.search(candidateStmts.get(0).getSubject().stringValue(), RDF.TYPE, null, 100, 0.9);
-							for(Statement type : rdftype) {
-								if((!type.getObject().stringValue().contains("owl#Thing"))||(!type.getObject().stringValue().contains("owl#NamedIndividual"))) {
-									entity.setType(type.getObject().stringValue());					
+						if (subClassOf.isEmpty()) {
+							ArrayList<Statement> rdftype = tripleSearcher
+									.search(candidateStmts.get(0).getSubject().stringValue(), RDF.TYPE, null, 100, 0.9);
+							for (Statement type : rdftype) {
+								if ((!type.getObject().stringValue().contains("owl#Thing"))
+										&& (!type.getObject().stringValue().contains("owl#NamedIndividual"))) {
+									entity.setType(type.getObject().stringValue());
+									entity.setLabelStmt(candidateStmts.get(0));
 								}
-								if(entity.getType() != null) {
+								if (entity.getType() != null) {
 									break;
 								}
 							}
 						}
-						
-//						if (hasSubclassProperty(candidateStmts.get(0))) {
-//							entity.setLabelStmt(candidateStmts.get(0));
-//							entity.setType(graphTraverser.getDirectAncestor(candidateStmts.get(0).getSubject().stringValue()));
-//						}
+
+						// if (hasSubclassProperty(candidateStmts.get(0))) {
+						// entity.setLabelStmt(candidateStmts.get(0));
+						// entity.setType(graphTraverser.getDirectAncestor(candidateStmts.get(0).getSubject().stringValue()));
+						// }
 						break;
 					} else if (candidateStmts.size() > 1) {
-//						disambiguateEntity(entity, candidateStmts, disambiguationProperty);
+						// disambiguateEntity(entity, candidateStmts, disambiguationProperty);
 
 						// Choose the candidate with the smallest Levensthein Distance to the entity
 						Statement candidate = disambiguateEntity(entity, candidateStmts, disambiguationProperty);
-						
-						ArrayList<Statement> subClassOf = tripleSearcher.search(candidate.getSubject().stringValue(), RDFS.SUBCLASSOF.stringValue(), null, 100, 0.9);
-						for(Statement upperClass : subClassOf) {
-//							keine Blank node oder owl:Thing als Überklasse
-							if((upperClass.getObject().stringValue().startsWith("http"))&&(!upperClass.getObject().stringValue().contains("owl#Thing"))) {
-								entity.setType(upperClass.getObject().stringValue());						
+
+						ArrayList<Statement> subClassOf = tripleSearcher.search(candidate.getSubject().stringValue(),
+								RDFS.SUBCLASSOF.stringValue(), null, 100, 0.9);
+						for (Statement upperClass : subClassOf) {
+							// keine Blank node oder owl:Thing als Überklasse
+							if ((upperClass.getObject().stringValue().startsWith("http"))
+									&& (!upperClass.getObject().stringValue().contains("owl#Thing"))) {
+								entity.setType(upperClass.getObject().stringValue());
+								entity.setLabelStmt(candidate);
 							}
-							if(entity.getType() != null) {
+							if (entity.getType() != null) {
 								break;
 							}
 						}
-						if(subClassOf.isEmpty()) {
-							ArrayList<Statement> rdftype= tripleSearcher.search(candidate.getSubject().stringValue(), RDF.TYPE, null, 100, 0.9);
-							for(Statement type : rdftype) {
-								if((!type.getObject().stringValue().contains("owl#Thing"))||(!type.getObject().stringValue().contains("owl#NamedIndividual"))) {
-									entity.setType(type.getObject().stringValue());					
+						if (subClassOf.isEmpty()) {
+							ArrayList<Statement> rdftype = tripleSearcher.search(candidate.getSubject().stringValue(),
+									RDF.TYPE, null, 100, 0.9);
+							for (Statement type : rdftype) {
+								if ((!type.getObject().stringValue().contains("owl#Thing"))
+										&& (!type.getObject().stringValue().contains("owl#NamedIndividual"))) {
+									entity.setType(type.getObject().stringValue());
+									entity.setLabelStmt(candidate);
 								}
-								if(entity.getType() != null) {
+								if (entity.getType() != null) {
 									break;
 								}
 							}
@@ -131,46 +144,48 @@ public class EntityClassificator {
 		/*
 		 * Infer and set actual type (superclass)
 		 */
-		for (Entity entity : entities) {
-			if (entity.getLabelStmt() != null) {
-				entity.setType(graphTraverser.getDirectAncestor(entity.getLabelStmt().getSubject().stringValue()));
-			}
-		}
+//		for (Entity entity : entities) {
+//			if (entity.getLabelStmt() != null) {
+//				entity.setType(graphTraverser.getDirectAncestor(entity.getLabelStmt().getSubject().stringValue()));
+//			}
+//		}
 	}
 
-	private Statement disambiguateEntity(Entity entity, ArrayList<Statement> candidateStmts, String disambiguationProperty) throws IOException {
+	private Statement disambiguateEntity(Entity entity, ArrayList<Statement> candidateStmts,
+			String disambiguationProperty) throws IOException {
 		int minLength = Integer.MAX_VALUE;
 		Statement newCandidateStmt = null;
 		for (Statement candidateStmt : candidateStmts) {
-			int levenLength = levenshteinDistance(entity.getNounPhrase().getPhraseString().toLowerCase(), candidateStmt.getObject().stringValue().toLowerCase());
+			int levenLength = levenshteinDistance(entity.getNounPhrase().getPhraseString().toLowerCase(),
+					candidateStmt.getObject().stringValue().toLowerCase());
 
-			if(minLength > levenLength) {
+			if (minLength > levenLength) {
 				minLength = levenLength;
 				newCandidateStmt = candidateStmt;
 			}
 		}
 		return newCandidateStmt;
-		
 
-//		for (Statement candidateStmt : candidateStmts) {
-//			Candidate candidate = new Candidate(domain, candidateStmt, contextTokens);
-//			candidate.addAnnotationCandidates(RDFS.COMMENT.stringValue());
-//			candidate.addAnnotationCandidates(RDFS.LABEL.stringValue());
-//			candidate.addAnnotationCandidates(disambiguationProperty);
-//			candidate.matchCandidateStmtWithAnnotationCandidates();
-//
-//			if (candidate.hasMatchingContextToken()) {
-//				candidates.add(candidate);
-//			}
-//		}
-//
-//		if (candidates.size() == 1 && hasSubclassProperty(candidates.get(0).getCandidateStmt())) { // &&
-//																									// hasSubclassProperty(candidates.get(0).getCandidateStmt())
-//			entity.setLabelStmt(candidates.get(0).getCandidateStmt());
-//		} else if (candidates.size() > 1) {
-//			removeRedundantMatchedContextToken(candidates);
-//			determineContextualDistances(entity, candidates);
-//		}
+		// for (Statement candidateStmt : candidateStmts) {
+		// Candidate candidate = new Candidate(domain, candidateStmt, contextTokens);
+		// candidate.addAnnotationCandidates(RDFS.COMMENT.stringValue());
+		// candidate.addAnnotationCandidates(RDFS.LABEL.stringValue());
+		// candidate.addAnnotationCandidates(disambiguationProperty);
+		// candidate.matchCandidateStmtWithAnnotationCandidates();
+		//
+		// if (candidate.hasMatchingContextToken()) {
+		// candidates.add(candidate);
+		// }
+		// }
+		//
+		// if (candidates.size() == 1 &&
+		// hasSubclassProperty(candidates.get(0).getCandidateStmt())) { // &&
+		// // hasSubclassProperty(candidates.get(0).getCandidateStmt())
+		// entity.setLabelStmt(candidates.get(0).getCandidateStmt());
+		// } else if (candidates.size() > 1) {
+		// removeRedundantMatchedContextToken(candidates);
+		// determineContextualDistances(entity, candidates);
+		// }
 	}
 
 	private void removeRedundantMatchedContextToken(ArrayList<Candidate> candidates) {
@@ -227,8 +242,9 @@ public class EntityClassificator {
 		}
 
 		for (Candidate candidate : candidates) {
-			if (candidate.getMatchedContextTokens().contains(closestContextToken) && hasSubclassProperty(candidate.getCandidateStmt())) { // &&
-																																			// hasSubclassProperty(candidate.getCandidateStmt())
+			if (candidate.getMatchedContextTokens().contains(closestContextToken)
+					&& hasSubclassProperty(candidate.getCandidateStmt())) { // &&
+																			// hasSubclassProperty(candidate.getCandidateStmt())
 				entity.setLabelStmt(candidate.getCandidateStmt());
 			}
 		}
@@ -357,7 +373,8 @@ public class EntityClassificator {
 	}
 
 	private boolean hasSubclassProperty(Statement labelStmt) {
-		ArrayList<Statement> correspondingStmts = tripleSearcher.search(labelStmt.getSubject().stringValue(), null, null, 100, 1.0);
+		ArrayList<Statement> correspondingStmts = tripleSearcher.search(labelStmt.getSubject().stringValue(), null,
+				null, 100, 1.0);
 		boolean hasSubclassProperty = false;
 
 		for (Statement stmt : correspondingStmts) {
@@ -372,7 +389,8 @@ public class EntityClassificator {
 	private void initializeOntology() {
 		Properties ontologyProps = loadProperties(AnnotationMerger.PROPERTIES_FILE_ONTOLOGY);
 		String ontologyBaseUri = ontologyProps.getProperty("ontologyBaseUri");
-		File inferredOntology = new File("src/main/resources/ontology/" + domain + "/" + AnnotationMerger.PROPERTIES_FILE_INFERRED_ONTOLOGY + ".ttl");
+		File inferredOntology = new File("src/main/resources/ontology/" + domain + "/"
+				+ AnnotationMerger.PROPERTIES_FILE_INFERRED_ONTOLOGY + ".ttl");
 		inferencer = new Inferencer(domain, ontologyBaseUri, "select", "SELECT ?s ?p ?o WHERE { ?s ?p ?o . }");
 
 		if (!inferredOntology.exists()) {
@@ -389,7 +407,8 @@ public class EntityClassificator {
 	private Properties loadProperties(String propertiesFileName) {
 		Properties prop = new Properties();
 
-		try (InputStream is = getClass().getClassLoader().getResourceAsStream("ontology/" + domain + "/" + propertiesFileName + ".properties")) {
+		try (InputStream is = getClass().getClassLoader()
+				.getResourceAsStream("ontology/" + domain + "/" + propertiesFileName + ".properties")) {
 			prop.load(is);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -397,44 +416,47 @@ public class EntityClassificator {
 
 		return prop;
 	}
-	
-	private int levenshteinDistance (CharSequence lhs, CharSequence rhs) {                          
-	    int len0 = lhs.length() + 1;                                                     
-	    int len1 = rhs.length() + 1;                                                     
-	                                                                                    
-	    // the array of distances                                                       
-	    int[] cost = new int[len0];                                                     
-	    int[] newcost = new int[len0];                                                  
-	                                                                                    
-	    // initial cost of skipping prefix in String s0                                 
-	    for (int i = 0; i < len0; i++) cost[i] = i;                                     
-	                                                                                    
-	    // dynamically computing the array of distances                                  
-	                                                                                    
-	    // transformation cost for each letter in s1                                    
-	    for (int j = 1; j < len1; j++) {                                                
-	        // initial cost of skipping prefix in String s1                             
-	        newcost[0] = j;                                                             
-	                                                                                    
-	        // transformation cost for each letter in s0                                
-	        for(int i = 1; i < len0; i++) {                                             
-	            // matching current letters in both strings                             
-	            int match = (lhs.charAt(i - 1) == rhs.charAt(j - 1)) ? 0 : 1;             
-	                                                                                    
-	            // computing cost for each transformation                               
-	            int cost_replace = cost[i - 1] + match;                                 
-	            int cost_insert  = cost[i] + 1;                                         
-	            int cost_delete  = newcost[i - 1] + 1;                                  
-	                                                                                    
-	            // keep minimum cost                                                    
-	            newcost[i] = Math.min(Math.min(cost_insert, cost_delete), cost_replace);
-	        }                                                                           
-	                                                                                    
-	        // swap cost/newcost arrays                                                 
-	        int[] swap = cost; cost = newcost; newcost = swap;                          
-	    }                                                                               
-	                                                                                    
-	    // the distance is the cost for transforming all letters in both strings        
-	    return cost[len0 - 1];                                                          
+
+	private int levenshteinDistance(CharSequence lhs, CharSequence rhs) {
+		int len0 = lhs.length() + 1;
+		int len1 = rhs.length() + 1;
+
+		// the array of distances
+		int[] cost = new int[len0];
+		int[] newcost = new int[len0];
+
+		// initial cost of skipping prefix in String s0
+		for (int i = 0; i < len0; i++)
+			cost[i] = i;
+
+		// dynamically computing the array of distances
+
+		// transformation cost for each letter in s1
+		for (int j = 1; j < len1; j++) {
+			// initial cost of skipping prefix in String s1
+			newcost[0] = j;
+
+			// transformation cost for each letter in s0
+			for (int i = 1; i < len0; i++) {
+				// matching current letters in both strings
+				int match = (lhs.charAt(i - 1) == rhs.charAt(j - 1)) ? 0 : 1;
+
+				// computing cost for each transformation
+				int cost_replace = cost[i - 1] + match;
+				int cost_insert = cost[i] + 1;
+				int cost_delete = newcost[i - 1] + 1;
+
+				// keep minimum cost
+				newcost[i] = Math.min(Math.min(cost_insert, cost_delete), cost_replace);
+			}
+
+			// swap cost/newcost arrays
+			int[] swap = cost;
+			cost = newcost;
+			newcost = swap;
+		}
+
+		// the distance is the cost for transforming all letters in both strings
+		return cost[len0 - 1];
 	}
 }

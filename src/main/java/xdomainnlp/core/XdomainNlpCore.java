@@ -5,11 +5,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.aksw.agdistis.datatypes.NamedEntityInText;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.eclipse.rdf4j.model.Model;
 
+import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetBeginAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.MentionsAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.util.CoreMap;
 import xdomainnlp.api.NifContext;
 import xdomainnlp.api.NoveltyParameter;
 import xdomainnlp.api.Post;
@@ -60,8 +67,8 @@ public class XdomainNlpCore {
 		/*
 		 * Named Entity Recognition and optional Entity Linking
 		 */
+		AnnotationMerger am = new AnnotationMerger(domain, inputDocText, coreNlpDoc);
 		if (reqAnnotator.equals("ner")) {
-			AnnotationMerger am = new AnnotationMerger(domain, inputDocText, coreNlpDoc);
 			if (nerOntologyIndexDir.isDirectory() && nerOntologyIndexDir.list().length > 0) {
 				am.mergeAnnotations();
 			} else if (namedEntityTypesPropsFile.exists()) {
@@ -71,7 +78,26 @@ public class XdomainNlpCore {
 
 		AgdistisCore agdistis = new AgdistisCore(coreNlpDoc, inputDocText);
 		agdistis.disambiguateEntities();
-
+		
+		for (CoreMap sentence : coreNlpDoc.get(SentencesAnnotation.class)) {
+			for (CoreMap entityMention : sentence.get(MentionsAnnotation.class)) {
+//				namedEntityInTextList.add(new NamedEntityInText(entityMention.get(CharacterOffsetBeginAnnotation.class),
+//						entityMention.get(TextAnnotation.class).length(), entityMention.get(TextAnnotation.class)));
+				int anfang = entityMention.get(CharacterOffsetBeginAnnotation.class);
+				int isRecognized = -1;
+				for (int i = 0; i < am.recognizedEntities.size() ; i++) {
+					if (am.recognizedEntities.get(i)[0].equalsIgnoreCase(String.valueOf(anfang))) {
+						isRecognized = i;
+					}
+				}
+				if(isRecognized > -1) {
+//					entityMention.set(NamedEntityTagAnnotation.class, am.recognizedEntities.get(isRecognized)[1]);
+					agdistis.disambiguatedUris.put(anfang, am.recognizedEntities.get(isRecognized)[1]);
+					System.out.println("test");
+				}
+			}
+		}
+		
 		/*
 		 * Novelty Detection
 		 */
