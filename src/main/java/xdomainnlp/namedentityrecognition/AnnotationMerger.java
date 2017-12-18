@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.openrdf.model.Statement;
 
 import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetBeginAnnotation;
@@ -52,7 +55,12 @@ public class AnnotationMerger {
 		addCoreNlpTypes(entities);
 
 		for (Entity entity : entities) {
-			if (entity.isNamedEntity()) {
+			if (entity.getLabelStmt() == null) {
+				ValueFactory factory = ValueFactoryImpl.getInstance();
+				org.eclipse.rdf4j.model.Statement owlThing = factory.createStatement(factory.createURI("http://example.org/", entity.getNounPhrase().getHead()), RDF.TYPE, OWL.THING);
+				entity.setLabelStmt(owlThing);
+			}
+			if (true) { //entity.isNamedEntity()
 				recognizedEntities.add(new String[] { String.valueOf(entity.getNounPhrase().getStartOffset()),
 						entity.getLabelStmt().getSubject().stringValue(), entity.getType() });
 			}

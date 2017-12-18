@@ -44,7 +44,7 @@ public class EntityClassificator {
 
 	public void classifyEntities(String disambiguationProperty) throws IOException {
 		for (Entity entity : entities) {
-			if (entity.isNamedEntity()) {
+			if (true) { //entity.isNamedEntity()
 				ArrayList<Statement> candidateStmts = tripleSearcher.search(null, RDFS.LABEL.stringValue(),
 						entity.getNounPhrase().getPhraseString(), 10, 0.95);
 				HashSet<Statement> hashSet = new HashSet<Statement>(candidateStmts);
